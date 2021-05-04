@@ -4,8 +4,9 @@
 
 count=1
 
-for param in "@@"; do
+while [[ -n "$1" ]]; do
     echo " -------------------- "
     echo "\$@ Parameter #$count = $param"
     count=$(( $count + 1))
+    shift
 done
