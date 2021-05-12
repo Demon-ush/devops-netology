@@ -1,0 +1,118 @@
+$git log -S "synchronizedWriters"
+
+commit bdfea50cc85161dea41be0fe3381fd98731ff786
+Author: James Bardin <j.bardin@gmail.com>
+Date:   Mon Nov 30 18:02:04 2020 -0500
+
+    remove unused
+
+commit fd4f7eb0b935e5a838810564fd549afe710ae19a
+Author: James Bardin <j.bardin@gmail.com>
+Date:   Wed Oct 21 13:06:23 2020 -0400
+
+    remove prefixed io
+    
+    The main process is now handling what output to print, so it doesn't do
+    any good to try and run it through prefixedio, which is only adding
+    extra coordination to echo the same data.
+
+commit 5ac311e2a91e381e2f52234668b49ba670aa0fe5
+Author: Martin Atkins <mart@degeneration.co.uk>
+Date:   Wed May 3 16:25:41 2017 -0700
+
+    main: synchronize writes to VT100-faker on Windows
+    
+    We use a third-party library "colorable" to translate VT100 color
+    sequences into Windows console attribute-setting calls when Terraform is
+    running on Windows.
+    
+    colorable is not concurrency-safe for multiple writes to the same console,
+    because it writes to the console one character at a time and so two
+    concurrent writers get their characters interleaved, creating unreadable
+    garble.
+    
+    Here we wrap around it a synchronization mechanism to ensure that there
+    can be only one Write call outstanding across both stderr and stdout,
+    mimicking the usual behavior we expect (when stderr/stdout are a normal
+    file handle) of each Write being completed atomically.
+
+
+$git show 5ac311e2a91e381e2f52234668b49ba670aa0fe5
+
+commit 5ac311e2a91e381e2f52234668b49ba670aa0fe5
+Author: Martin Atkins <mart@degeneration.co.uk>
+Date:   Wed May 3 16:25:41 2017 -0700
+
+    main: synchronize writes to VT100-faker on Windows
+    
+    We use a third-party library "colorable" to translate VT100 color
+    sequences into Windows console attribute-setting calls when Terraform is
+    running on Windows.
+    
+    colorable is not concurrency-safe for multiple writes to the same console,
+    because it writes to the console one character at a time and so two
+    concurrent writers get their characters interleaved, creating unreadable
+    garble.
+    
+    Here we wrap around it a synchronization mechanism to ensure that there
+    can be only one Write call outstanding across both stderr and stdout,
+    mimicking the usual behavior we expect (when stderr/stdout are a normal
+    file handle) of each Write being completed atomically.
+
+diff --git a/main.go b/main.go
+index b94de2ebc..237581200 100644
+--- a/main.go
++++ b/main.go
+@@ -258,6 +258,15 @@ func copyOutput(r io.Reader, doneCh chan<- struct{}) {
+ 	if runtime.GOOS == "windows" {
+ 		stdout = colorable.NewColorableStdout()
+ 		stderr = colorable.NewColorableStderr()
++
++		// colorable is not concurrency-safe when stdout and stderr are the
++		// same console, so we need to add some synchronization to ensure that
++		// we can't be concurrently writing to both stderr and stdout at
++		// once, or else we get intermingled writes that create gibberish
++		// in the console.
++		wrapped := synchronizedWriters(stdout, stderr)
++		stdout = wrapped[0]
++		stderr = wrapped[1]
+ 	}
+ 
+ 	var wg sync.WaitGroup
+diff --git a/synchronized_writers.go b/synchronized_writers.go
+new file mode 100644
+index 000000000..2533d1316
+--- /dev/null
++++ b/synchronized_writers.go
+@@ -0,0 +1,31 @@
++package main
++
++import (
++	"io"
++	"sync"
++)
++
++type synchronizedWriter struct {
++	io.Writer
++	mutex *sync.Mutex
++}
++
++// synchronizedWriters takes a set of writers and returns wrappers that ensure
++// that only one write can be outstanding at a time across the whole set.
++func synchronizedWriters(targets ...io.Writer) []io.Writer {
++	mutex := &sync.Mutex{}
++	ret := make([]io.Writer, len(targets))
++	for i, target := range targets {
++		ret[i] = &synchronizedWriter{
++			Writer: target,
++			mutex:  mutex,
++		}
++	}
++	return ret
++}
++
++func (w *synchronizedWriter) Write(p []byte) (int, error) {
++	w.mutex.Lock()
++	defer w.mutex.Unlock()
++	return w.Writer.Write(p)
++}

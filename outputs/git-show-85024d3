@@ -1,0 +1,29 @@
+commit 85024d3100126de36331c6982bfaac02cdab9e76
+Author: tf-release-bot <terraform@hashicorp.com>
+Date:   Thu Mar 5 20:56:10 2020 +0000
+
+    v0.12.23
+
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 1a9dcd0f9..faedc8bf4 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -1,4 +1,4 @@
+-## 0.12.23 (Unreleased)
++## 0.12.23 (March 05, 2020)
+ ## 0.12.22 (March 05, 2020)
+ 
+ ENHANCEMENTS:
+diff --git a/version/version.go b/version/version.go
+index 33ac86f5d..bcb6394d2 100644
+--- a/version/version.go
++++ b/version/version.go
+@@ -16,7 +16,7 @@ var Version = "0.12.23"
+ // A pre-release marker for the version. If this is "" (empty string)
+ // then it means that it is a final release. Otherwise, this is a pre-release
+ // such as "dev" (in development), "beta", "rc1", etc.
+-var Prerelease = "dev"
++var Prerelease = ""
+ 
+ // SemVer is an instance of version.Version. This has the secondary
+ // benefit of verifying during tests and init time that our version is a

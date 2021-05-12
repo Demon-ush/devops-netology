@@ -1,0 +1,9 @@
+commit b8d720f8340221f2146e4e4870bf2ee0bc48f2d5
+Merge: 56cd7859e 9ea88f22f
+Author: Chris Griggs <cgriggs@hashicorp.com>
+Date:   Tue Jan 21 17:45:48 2020 -0800
+
+    Merge pull request #23916 from hashicorp/cgriggs01-stable
+    
+    [Cherrypick] community links
+
