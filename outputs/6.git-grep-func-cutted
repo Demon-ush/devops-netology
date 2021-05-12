@@ -1,0 +1,8 @@
+$git grep globalPluginDirs $(git rev-list --all)
+
+41cb0d1f5029f4d0dfb20d985394d72a6636251a:command/cliconfig/config_unix.go:		// FIXME: homeDir gets called from globalPluginDirs during init, before
+41cb0d1f5029f4d0dfb20d985394d72a6636251a:commands.go:		GlobalPluginDirs: globalPluginDirs(),
+41cb0d1f5029f4d0dfb20d985394d72a6636251a:commands.go:	helperPlugins := pluginDiscovery.FindPlugins("credentials", globalPluginDirs())
+41cb0d1f5029f4d0dfb20d985394d72a6636251a:plugins.go:// globalPluginDirs returns directories that should be searched for
+41cb0d1f5029f4d0dfb20d985394d72a6636251a:plugins.go:func globalPluginDirs() []string {
+.....
